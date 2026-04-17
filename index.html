@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PL Utebo - Gestión Integral</title>
+    <title>PL Utebo - Gestión de Llamamientos</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/color/96/cash-register.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/color/180/cash-register.png">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -14,27 +14,21 @@
         .header { background: white; padding: 15px; text-align: center; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid var(--accent); }
         .escudo { width: 65px; height: auto; margin-bottom: 5px; }
         h1 { margin: 5px 0; font-size: 1.2em; color: var(--accent); }
-        .seccion-titulo { padding: 10px; margin-top: 20px; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; }
+        .seccion-titulo { padding: 10px; margin-top: 20px; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; text-align: center; }
         .container-turnos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         @media (max-width: 768px) { .container-turnos { grid-template-columns: 1fr; } }
         .bloque { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .bloque h3 { margin: 0; padding: 10px; color: white; text-align: center; font-size: 0.9em; }
+        .bloque h3 { margin: 0; padding: 10px; color: white; text-align: center; font-size: 0.9em; text-transform: uppercase; }
         .par-h { background: var(--par); }
         .impar-h { background: var(--impar); }
-        .agente { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee; }
-        .agente:first-child { background: #fff9c4; border-left: 6px solid #f1c40f; position: relative; }
-        .badge { font-size: 0.65em; font-weight: bold; padding: 3px 6px; border-radius: 4px; display: inline-block; }
+        .agente { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; }
+        .agente:first-child { background: #fff9c4; border-left: 6px solid #f1c40f; }
+        .badge { font-size: 0.7em; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
         .badge-disponible { background: #d4edda; color: #155724; }
         .badge-llamado { background: #f8d7da; color: #721c24; }
-        .btn-accion { display: none; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.7em; background: var(--disponible); color: white; }
+        .btn-accion { display: none; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.75em; background: var(--disponible); color: white; }
         body.admin-mode .btn-accion { display: block; }
-        .fab { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; }
-        .calc-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 15px; }
-        .resumen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .caja { padding: 15px; border-radius: 10px; color: white; text-align: center; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
-        input { width: 90%; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
-        .btn-add { background: #27ae60; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        .fab { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; width: 55px; height: 55px; border-radius: 50%; border: none; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; cursor: pointer; }
     </style>
 </head>
 <body id="appBody">
@@ -42,33 +36,13 @@
 <div class="header">
     <img src="escudo_utebo.png" class="escudo" alt="Escudo PL Utebo">
     <h1>POLICÍA LOCAL UTEBO</h1>
-    <p id="txtAdmin" style="font-size: 0.7em; color: var(--disponible); font-weight: bold; display: none;">MODO ADMINISTRADOR ACTIVADO</p>
+    <p id="txtAdmin" style="font-size: 0.75em; color: var(--disponible); font-weight: bold; display: none; margin-top: 5px;">⚠️ MODO ADMINISTRADOR ACTIVADO</p>
 </div>
 
-<div class="seccion-titulo">📋 LISTADO DE LLAMAMIENTOS</div>
+<div class="seccion-titulo">📋 LISTADO DE LLAMAMIENTOS (TIEMPO REAL)</div>
 <div class="container-turnos">
     <div class="bloque"><h3 class="par-h">SEMANA PAR</h3><ul id="listaPar" style="list-style:none;padding:0;margin:0;"></ul></div>
     <div class="bloque"><h3 class="impar-h">SEMANA IMPAR</h3><ul id="listaImpar" style="list-style:none;padding:0;margin:0;"></ul></div>
-</div>
-
-<div class="seccion-titulo">💰 MI CALCULADORA PERSONAL</div>
-<div class="calc-card">
-    <div class="resumen">
-        <div class="caja" style="background: var(--par);"><h4>Hrs</h4><p id="totalHoras">0.0</p></div>
-        <div class="caja" style="background: var(--impar);"><h4>Total</h4><p id="totalCobro">0.00€</p></div>
-    </div>
-    <table id="tablaHoras">
-        <thead><tr><th>Fecha</th><th>Servicio</th><th>Hrs</th><th>€/h</th></tr></thead>
-        <tbody>
-            <tr>
-                <td><input type="date"></td>
-                <td><input type="text" placeholder="Ej: San Jorge"></td>
-                <td><input type="number" step="0.5" value="0" onchange="calc()"></td>
-                <td><input type="number" value="25" onchange="calc()"></td>
-            </tr>
-        </tbody>
-    </table>
-    <button class="btn-add" onclick="addRow()">+ AÑADIR FILA</button>
 </div>
 
 <button class="fab" onclick="access()">🔒</button>
@@ -137,32 +111,15 @@
     function access() {
         const p = prompt("Introduce clave:");
         db.ref('extras/pass').once('value', (s) => {
-            if (isAdmin && p.toUpperCase() === "RESET") {
-                if(confirm("¿Seguro que quieres borrar todo y empezar de cero?")) resetearBase();
+            if (isAdmin && p && p.toUpperCase() === "RESET") {
+                if(confirm("¿Seguro que quieres poner toda la lista a cero?")) resetearBase();
             } else if (p === s.val() || p === "UTEBO_MAESTRA_2026") {
                 isAdmin = true;
                 document.body.classList.add('admin-mode');
                 document.getElementById('txtAdmin').style.display = 'block';
-                alert("MODO ADMIN: Escribe RESET en el candado para poner todo a cero.");
+                alert("MODO ADMIN: Lista habilitada. Escribe RESET en el candado para reiniciar.");
             }
         });
-    }
-
-    function addRow() {
-        const tr = document.getElementById('tablaHoras').getElementsByTagName('tbody')[0].insertRow(-1);
-        tr.innerHTML = `<td><input type="date"></td><td><input type="text"></td><td><input type="number" step="0.5" value="0" onchange="calc()"></td><td><input type="number" value="25" onchange="calc()"></td>`;
-    }
-
-    function calc() {
-        let h = 0, e = 0;
-        const rows = document.getElementById('tablaHoras').getElementsByTagName('tbody')[0].rows;
-        for(let r of rows) {
-            let hrs = parseFloat(r.cells[2].children[0].value) || 0;
-            let prc = parseFloat(r.cells[3].children[0].value) || 0;
-            h += hrs; e += (hrs * prc);
-        }
-        document.getElementById('totalHoras').innerText = h.toFixed(1);
-        document.getElementById('totalCobro').innerText = e.toFixed(2) + "€";
     }
 </script>
 </body>
