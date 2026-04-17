@@ -3,142 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PL Utebo - Horas Extras</title>
+    <title>PL Utebo - Extras Tiempo Real</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --par: #2980b9; --impar: #8e44ad; --disponible: #27ae60; --llamado: #e74c3c; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; padding-bottom: 80px; }
-        
         .header { background: white; padding: 15px; text-align: center; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid #2c3e50; }
-        .escudo { width: 70px; height: auto; margin-bottom: 5px; }
-        .header h1 { margin: 5px 0; font-size: 1.2em; color: #2c3e50; }
-        .header h2 { margin: 0; font-size: 0.9em; color: #7f8c8d; letter-spacing: 1px; }
-
+        .escudo { width: 65px; margin-bottom: 5px; }
         .container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
-
         .bloque { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .bloque h3 { margin: 0; padding: 12px; color: white; text-align: center; font-size: 1em; }
+        .bloque h3 { margin: 0; padding: 12px; color: white; text-align: center; font-size: 0.9em; letter-spacing: 1px; }
         .par-h { background: var(--par); }
         .impar-h { background: var(--impar); }
-
-        .lista { list-style: none; padding: 0; margin: 0; }
-        .agente { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 12px 15px; border-bottom: 1px solid #eee; transition: 0.4s;
-        }
-        
+        .agente { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; }
         .agente:first-child { background: #fff9c4; border-left: 6px solid #f1c40f; }
-
-        .info { display: flex; flex-direction: column; }
-        .nombre { font-weight: bold; color: #333; font-size: 0.95em; }
-        .id { font-size: 0.8em; color: #888; }
-        
-        .badge { font-size: 0.7em; font-weight: bold; padding: 3px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; width: fit-content; }
+        .nombre { font-weight: bold; color: #333; font-size: 0.9em; }
+        .badge { font-size: 0.65em; font-weight: bold; padding: 3px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
         .badge-disponible { background: #d4edda; color: #155724; }
         .badge-llamado { background: #f8d7da; color: #721c24; }
-
-        .btn-accion { 
-            display: none; border: none; padding: 10px 15px; border-radius: 8px; 
-            cursor: pointer; font-weight: bold; font-size: 0.75em; width: 100px;
-        }
+        .btn-accion { display: none; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.7em; background: var(--disponible); color: white; }
         body.admin-mode .btn-accion { display: block; }
-        .btn-disponible { background: var(--disponible); color: white; }
-
-        .fab { position: fixed; bottom: 20px; right: 20px; background: #2c3e50; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; }
+        .fab { position: fixed; bottom: 20px; right: 20px; background: #2c3e50; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; }
     </style>
 </head>
 <body id="appBody">
 
 <div class="header">
-    <img src="escudo_utebo.png" class="escudo" alt="Escudo Policía Utebo"> 
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVU..." class="escudo">
     <h1>POLICÍA LOCAL UTEBO</h1>
-    <h2>GESTIÓN DE HORAS EXTRAS</h2>
-    <p id="txtAdmin" style="font-size: 0.7em; color: #27ae60; font-weight: bold; margin-top: 10px; display: none;">MODO ADMINISTRADOR ACTIVO</p>
+    <h2 id="st">GESTIÓN DE TURNOS</h2>
+    <p id="txtAdmin" style="font-size: 0.7em; color: #27ae60; font-weight: bold; display: none; margin-top: 5px;">MODO ADMINISTRADOR</p>
 </div>
 
 <div class="container">
-    <div class="bloque">
-        <h3 class="par-h">SEMANA PAR</h3>
-        <ul id="listaPar" class="lista"></ul>
-    </div>
-    <div class="bloque">
-        <h3 class="impar-h">SEMANA IMPAR</h3>
-        <ul id="listaImpar" class="lista"></ul>
-    </div>
+    <div class="bloque"><h3 class="par-h">SEMANA PAR</h3><ul id="listaPar" style="list-style:none;padding:0;margin:0;"></ul></div>
+    <div class="bloque"><h3 class="impar-h">SEMANA IMPAR</h3><ul id="listaImpar" style="list-style:none;padding:0;margin:0;"></ul></div>
 </div>
 
 <button class="fab" onclick="access()">🔒</button>
 
 <script>
-    let isAdmin = false;
-    let pass = "1234";
+    const firebaseConfig = {
+        apiKey: "AIzaSyBhsx7ZdRYh2Ni2T5US0bf21Eyj97qAPYo",
+        authDomain: "pl-utebo-extras.firebaseapp.com",
+        projectId: "pl-utebo-extras",
+        databaseURL: "https://pl-utebo-extras-default-rtdb.europe-west1.firebasedatabase.app",
+        storageBucket: "pl-utebo-extras.firebasestorage.app",
+        messagingSenderId: "842530904692",
+        appId: "1:842530904692:web:2ec4974c470ec690398f21"
+    };
 
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let isAdmin = false;
+
+    // Listas Iniciales (se suben si la BD está vacía)
     let par = ["Oficial Castro (AR01249)", "Oficial Marín (AR01475)", "Oficial Serrano (AR01474)", "Agente Vives (AR01258)", "Agente Marquina (AR01251)", "Agente Pérez Gete (AR01240)", "Agente Beisti (AR01478)", "Agente Pérez (AR01359)", "Agente Roca (AR01488)", "Agente Plou (AR01485)", "Agente Lasmarías (AR01046)", "Agente Gimeno (AR01797)", "Agente Belanche (AR01780)"];
     let impar = ["Oficial Olmos (AR01349)", "Oficial Orea (AR01218)", "Agente Salavera (AR01256)", "Agente García Moraz (AR01259)", "Agente Picapeo (AR01260)", "Agente Lucea (AR01253)", "Agente Marco (AR01476)", "Agente García (AR01451)", "Agente Martínez Lacal (AR01133)", "Agente Gil (AR01219)", "Agente Aznar (AR01790)", "Agente Pemán (AR01776)"];
-    
-    let estados = JSON.parse(localStorage.getItem('estados_extras')) || {};
 
-    function render() {
-        renderSeccion('listaPar', par);
-        renderSeccion('listaImpar', impar);
-        localStorage.setItem('par_orden', JSON.stringify(par));
-        localStorage.setItem('impar_orden', JSON.stringify(impar));
-        localStorage.setItem('estados_extras', JSON.stringify(estados));
+    // Sincronización en tiempo real
+    db.ref('extras').on('value', (snap) => {
+        const data = snap.val();
+        if(data) {
+            if(data.par) par = data.par;
+            if(data.impar) impar = data.impar;
+            renderAll(data.estados || {});
+        } else {
+            // Inicializar base de datos la primera vez
+            db.ref('extras').set({par, impar, estados: {}, pass: "1234", master: "UTEBO_MAESTRA_2026"});
+        }
+    });
+
+    function renderAll(estados) {
+        renderSeccion('listaPar', par, estados);
+        renderSeccion('listaImpar', impar, estados);
     }
 
-    function renderSeccion(id, lista) {
+    function renderSeccion(id, lista, estados) {
         const el = document.getElementById(id);
         el.innerHTML = "";
-        
         lista.forEach((full, i) => {
             const li = document.createElement('li');
             li.className = 'agente';
-            const [nombre, code] = full.split(' (');
-            
-            let estadoActual = "LLAMADO";
-            if (i < 7) {
-                estadoActual = "DISPONIBLE";
-                delete estados[full];
-            } else if (!estados[full]) {
-                estadoActual = "DISPONIBLE";
-            } else {
-                estadoActual = "LLAMADO";
-            }
-
+            let estado = (i < 7 || !estados[full]) ? "DISPONIBLE" : "LLAMADO";
             li.innerHTML = `
-                <div class="info">
-                    <span class="nombre">${nombre}</span>
-                    <span class="id">${code.replace(')', '')}</span>
-                    <span class="badge ${estadoActual === 'DISPONIBLE' ? 'badge-disponible' : 'badge-llamado'}">${estadoActual}</span>
-                </div>
-                ${estadoActual === 'DISPONIBLE' ? `<button class="btn-accion btn-disponible" onclick="ejecutar('${id}', ${i})">DISPONIBLE</button>` : ''}
+                <div><span class="nombre">${full.split(' (')[0]}</span><br>
+                <span class="badge ${estado==='DISPONIBLE'?'badge-disponible':'badge-llamado'}">${estado}</span></div>
+                ${estado==='DISPONIBLE' ? `<button class="btn-accion" onclick="ejecutar('${id}', ${i})">LLAMAR</button>` : ''}
             `;
             el.appendChild(li);
         });
     }
 
     function ejecutar(listaId, index) {
-        const array = listaId === 'listaPar' ? par : impar;
-        const agente = array.splice(index, 1)[0];
-        estados[agente] = true;
+        if(!isAdmin) return;
+        let array = listaId === 'listaPar' ? par : impar;
+        let agente = array.splice(index, 1)[0];
         array.push(agente);
-        render();
+        
+        db.ref('extras').update({
+            [listaId === 'listaPar' ? 'par' : 'impar']: array,
+            [`estados/${agente}`]: true
+        });
     }
 
     function access() {
-        const p = prompt("Clave Admin:");
-        if(p === pass) {
-            isAdmin = !isAdmin;
-            document.getElementById('appBody').classList.toggle('admin-mode', isAdmin);
-            document.getElementById('txtAdmin').style.display = isAdmin ? 'block' : 'none';
-        }
+        const cmd = prompt("Clave o Comando (RECUPERAR):");
+        if(!cmd) return;
+
+        db.ref('extras').once('value', (s) => {
+            const d = s.val();
+            if(cmd === d.pass) {
+                isAdmin = true;
+                document.body.classList.add('admin-mode');
+                document.getElementById('txtAdmin').style.display = 'block';
+            } else if(cmd === "RECUPERAR") {
+                const master = prompt("Introduce Clave Maestra:");
+                if(master === d.master) {
+                    const newP = prompt("Nueva Clave Diaria:");
+                    db.ref('extras/pass').set(newP);
+                    alert("Clave actualizada.");
+                }
+            } else if(cmd === "CHPASS" && isAdmin) {
+                const newP = prompt("Nueva Clave Diaria:");
+                db.ref('extras/pass').set(newP);
+            }
+        });
     }
-
-    if(localStorage.getItem('par_orden')) par = JSON.parse(localStorage.getItem('par_orden'));
-    if(localStorage.getItem('impar_orden')) impar = JSON.parse(localStorage.getItem('impar_orden'));
-    
-    render();
 </script>
-
 </body>
 </html>
