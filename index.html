@@ -3,43 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PL Utebo - Extras Tiempo Real</title>
+    <title>PL Utebo - Gestión Integral</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --par: #2980b9; --impar: #8e44ad; --disponible: #27ae60; --llamado: #e74c3c; }
+        :root { --par: #2980b9; --impar: #8e44ad; --disponible: #27ae60; --llamado: #e74c3c; --accent: #2c3e50; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; padding-bottom: 80px; }
-        .header { background: white; padding: 15px; text-align: center; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid #2c3e50; }
-        .escudo { width: 65px; margin-bottom: 5px; }
-        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        
+        /* HEADER */
+        .header { background: white; padding: 15px; text-align: center; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid var(--accent); }
+        .escudo { width: 65px; height: auto; margin-bottom: 5px; }
+        h1 { margin: 5px 0; font-size: 1.2em; color: var(--accent); }
+        h2 { margin: 0; font-size: 0.85em; color: #7f8c8d; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* SECCIONES */
+        .seccion-titulo { padding: 10px; margin-top: 20px; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; }
+        
+        /* GESTOR DE TURNOS */
+        .container-turnos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        @media (max-width: 768px) { .container-turnos { grid-template-columns: 1fr; } }
         .bloque { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .bloque h3 { margin: 0; padding: 12px; color: white; text-align: center; font-size: 0.9em; letter-spacing: 1px; }
+        .bloque h3 { margin: 0; padding: 10px; color: white; text-align: center; font-size: 0.9em; }
         .par-h { background: var(--par); }
         .impar-h { background: var(--impar); }
-        .agente { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; }
+        .agente { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee; }
         .agente:first-child { background: #fff9c4; border-left: 6px solid #f1c40f; }
-        .nombre { font-weight: bold; color: #333; font-size: 0.9em; }
-        .badge { font-size: 0.65em; font-weight: bold; padding: 3px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+        .badge { font-size: 0.65em; font-weight: bold; padding: 3px 6px; border-radius: 4px; margin-top: 3px; display: inline-block; }
         .badge-disponible { background: #d4edda; color: #155724; }
         .badge-llamado { background: #f8d7da; color: #721c24; }
+
+        /* CALCULADORA */
+        .calc-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 15px; }
+        .resumen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .caja { padding: 15px; border-radius: 10px; color: white; text-align: center; }
+        .caja h4 { margin: 0; font-size: 0.7em; text-transform: uppercase; }
+        .caja p { margin: 5px 0 0; font-size: 1.4em; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        th { background: #f8f9fa; padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; }
+        td { padding: 8px; border-bottom: 1px solid #eee; }
+        input { width: 90%; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
+
+        /* BOTONES */
         .btn-accion { display: none; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.7em; background: var(--disponible); color: white; }
         body.admin-mode .btn-accion { display: block; }
-        .fab { position: fixed; bottom: 20px; right: 20px; background: #2c3e50; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; }
+        .btn-add { background: #27ae60; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        .fab { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; }
     </style>
 </head>
 <body id="appBody">
 
 <div class="header">
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVU..." class="escudo">
+    <img src="escudo_utebo.png" class="escudo" alt="Escudo PL Utebo">
     <h1>POLICÍA LOCAL UTEBO</h1>
-    <h2 id="st">GESTIÓN DE TURNOS</h2>
-    <p id="txtAdmin" style="font-size: 0.7em; color: #27ae60; font-weight: bold; display: none; margin-top: 5px;">MODO ADMINISTRADOR</p>
+    <h2>Gestión Integral de Servicios</h2>
+    <p id="txtAdmin" style="font-size: 0.7em; color: var(--disponible); font-weight: bold; display: none;">MODO ADMINISTRADOR ACTIVADO</p>
 </div>
 
-<div class="container">
+<div class="seccion-titulo">📋 LISTADO DE LLAMAMIENTOS (TIEMPO REAL)</div>
+<div class="container-turnos">
     <div class="bloque"><h3 class="par-h">SEMANA PAR</h3><ul id="listaPar" style="list-style:none;padding:0;margin:0;"></ul></div>
     <div class="bloque"><h3 class="impar-h">SEMANA IMPAR</h3><ul id="listaImpar" style="list-style:none;padding:0;margin:0;"></ul></div>
+</div>
+
+<div class="seccion-titulo">💰 MI CALCULADORA PERSONAL</div>
+<div class="calc-card">
+    <div class="resumen">
+        <div class="caja" style="background: var(--par);"><h4>Horas Totales</h4><p id="totalHoras">0.0</p></div>
+        <div class="caja" style="background: var(--impar);"><h4>Total a Cobrar</h4><p id="totalCobro">0.00€</p></div>
+    </div>
+    <table id="tablaHoras">
+        <thead><tr><th>Fecha</th><th>Servicio</th><th>Hrs</th><th>€/h</th></tr></thead>
+        <tbody>
+            <tr>
+                <td><input type="date" value="2026-04-17"></td>
+                <td><input type="text" placeholder="Ej: San Jorge"></td>
+                <td><input type="number" step="0.5" value="0" onchange="calc()"></td>
+                <td><input type="number" value="25" onchange="calc()"></td>
+            </tr>
+        </tbody>
+    </table>
+    <button class="btn-add" onclick="addRow()">+ AÑADIR FILA</button>
 </div>
 
 <button class="fab" onclick="access()">🔒</button>
@@ -59,76 +102,62 @@
     const db = firebase.database();
     let isAdmin = false;
 
-    // Listas Iniciales (se suben si la BD está vacía)
-    let par = ["Oficial Castro (AR01249)", "Oficial Marín (AR01475)", "Oficial Serrano (AR01474)", "Agente Vives (AR01258)", "Agente Marquina (AR01251)", "Agente Pérez Gete (AR01240)", "Agente Beisti (AR01478)", "Agente Pérez (AR01359)", "Agente Roca (AR01488)", "Agente Plou (AR01485)", "Agente Lasmarías (AR01046)", "Agente Gimeno (AR01797)", "Agente Belanche (AR01780)"];
-    let impar = ["Oficial Olmos (AR01349)", "Oficial Orea (AR01218)", "Agente Salavera (AR01256)", "Agente García Moraz (AR01259)", "Agente Picapeo (AR01260)", "Agente Lucea (AR01253)", "Agente Marco (AR01476)", "Agente García (AR01451)", "Agente Martínez Lacal (AR01133)", "Agente Gil (AR01219)", "Agente Aznar (AR01790)", "Agente Pemán (AR01776)"];
-
-    // Sincronización en tiempo real
+    // Sincronización Turnos
     db.ref('extras').on('value', (snap) => {
         const data = snap.val();
         if(data) {
-            if(data.par) par = data.par;
-            if(data.impar) impar = data.impar;
-            renderAll(data.estados || {});
-        } else {
-            // Inicializar base de datos la primera vez
-            db.ref('extras').set({par, impar, estados: {}, pass: "1234", master: "UTEBO_MAESTRA_2026"});
+            renderTurnos('listaPar', data.par, data.estados || {});
+            renderTurnos('listaImpar', data.impar, data.estados || {});
         }
     });
 
-    function renderAll(estados) {
-        renderSeccion('listaPar', par, estados);
-        renderSeccion('listaImpar', impar, estados);
-    }
-
-    function renderSeccion(id, lista, estados) {
-        const el = document.getElementById(id);
-        el.innerHTML = "";
+    function renderTurnos(id, lista, estados) {
+        const el = document.getElementById(id); el.innerHTML = "";
         lista.forEach((full, i) => {
-            const li = document.createElement('li');
-            li.className = 'agente';
+            const li = document.createElement('li'); li.className = 'agente';
             let estado = (i < 7 || !estados[full]) ? "DISPONIBLE" : "LLAMADO";
-            li.innerHTML = `
-                <div><span class="nombre">${full.split(' (')[0]}</span><br>
-                <span class="badge ${estado==='DISPONIBLE'?'badge-disponible':'badge-llamado'}">${estado}</span></div>
-                ${estado==='DISPONIBLE' ? `<button class="btn-accion" onclick="ejecutar('${id}', ${i})">LLAMAR</button>` : ''}
-            `;
+            li.innerHTML = `<div><b style="font-size:0.85em">${full.split(' (')[0]}</b><br><span class="badge ${estado==='DISPONIBLE'?'badge-disponible':'badge-llamado'}">${estado}</span></div>
+            ${estado==='DISPONIBLE' ? `<button class="btn-accion" onclick="ejecutar('${id}', ${i})">LLAMAR</button>` : ''}`;
             el.appendChild(li);
         });
     }
 
     function ejecutar(listaId, index) {
         if(!isAdmin) return;
-        let array = listaId === 'listaPar' ? par : impar;
-        let agente = array.splice(index, 1)[0];
-        array.push(agente);
-        
-        db.ref('extras').update({
-            [listaId === 'listaPar' ? 'par' : 'impar']: array,
-            [`estados/${agente}`]: true
+        db.ref('extras').once('value', (s) => {
+            let d = s.val();
+            let lista = listaId === 'listaPar' ? d.par : d.impar;
+            let agente = lista.splice(index, 1)[0];
+            lista.push(agente);
+            db.ref('extras').update({ [listaId==='listaPar'?'par':'impar']: lista, [`estados/${agente}`]: true });
         });
     }
 
-    function access() {
-        const cmd = prompt("Clave o Comando (RECUPERAR):");
-        if(!cmd) return;
+    // Calculadora
+    function addRow() {
+        const row = `<tr><td><input type="date"></td><td><input type="text"></td><td><input type="number" step="0.5" value="0" onchange="calc()"></td><td><input type="number" value="25" onchange="calc()"></td></tr>`;
+        document.getElementById('tablaHoras').getElementsByTagName('tbody')[0].insertAdjacentHTML('beforeend', row);
+    }
 
-        db.ref('extras').once('value', (s) => {
-            const d = s.val();
-            if(cmd === d.pass) {
+    function calc() {
+        let totalH = 0, totalE = 0;
+        const rows = document.getElementById('tablaHoras').getElementsByTagName('tbody')[0].rows;
+        for(let r of rows) {
+            let h = parseFloat(r.cells[2].getElementsByTagName('input')[0].value) || 0;
+            let p = parseFloat(r.cells[3].getElementsByTagName('input')[0].value) || 0;
+            totalH += h; totalE += (h * p);
+        }
+        document.getElementById('totalHoras').innerText = totalH.toFixed(1);
+        document.getElementById('totalCobro').innerText = totalE.toFixed(2) + "€";
+    }
+
+    function access() {
+        const p = prompt("Clave:");
+        db.ref('extras/pass').once('value', (s) => {
+            if(p === s.val()) {
                 isAdmin = true;
                 document.body.classList.add('admin-mode');
                 document.getElementById('txtAdmin').style.display = 'block';
-            } else if(cmd === "RECUPERAR") {
-                const master = prompt("Introduce Clave Maestra:");
-                if(master === d.master) {
-                    const newP = prompt("Nueva Clave Diaria:");
-                    db.ref('extras/pass').set(newP);
-                    alert("Clave actualizada.");
-                }
-            } else if(cmd === "CHPASS" && isAdmin) {
-                const newP = prompt("Nueva Clave Diaria:");
-                db.ref('extras/pass').set(newP);
             }
         });
     }
