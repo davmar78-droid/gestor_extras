@@ -22,14 +22,13 @@
         .par-h { background: var(--par); }
         .impar-h { background: var(--impar); }
         .agente { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee; }
-        .agente:first-child { background: #fff9c4; border-left: 6px solid #f1c40f; }
+        .agente:first-child { background: #fff9c4; border-left: 6px solid #f1c40f; position: relative; }
         .badge { font-size: 0.65em; font-weight: bold; padding: 3px 6px; border-radius: 4px; display: inline-block; }
         .badge-disponible { background: #d4edda; color: #155724; }
         .badge-llamado { background: #f8d7da; color: #721c24; }
         .btn-accion { display: none; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.7em; background: var(--disponible); color: white; }
         body.admin-mode .btn-accion { display: block; }
         .fab { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; }
-        /* Calculadora */
         .calc-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 15px; }
         .resumen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .caja { padding: 15px; border-radius: 10px; color: white; text-align: center; }
@@ -52,7 +51,7 @@
     <div class="bloque"><h3 class="impar-h">SEMANA IMPAR</h3><ul id="listaImpar" style="list-style:none;padding:0;margin:0;"></ul></div>
 </div>
 
-<div class="seccion-titulo">💰 CALCULADORA PERSONAL</div>
+<div class="seccion-titulo">💰 MI CALCULADORA PERSONAL</div>
 <div class="calc-card">
     <div class="resumen">
         <div class="caja" style="background: var(--par);"><h4>Hrs</h4><p id="totalHoras">0.0</p></div>
@@ -63,7 +62,7 @@
         <tbody>
             <tr>
                 <td><input type="date"></td>
-                <td><input type="text" placeholder="Servicio"></td>
+                <td><input type="text" placeholder="Ej: San Jorge"></td>
                 <td><input type="number" step="0.5" value="0" onchange="calc()"></td>
                 <td><input type="number" value="25" onchange="calc()"></td>
             </tr>
@@ -89,25 +88,27 @@
     const db = firebase.database();
     let isAdmin = false;
 
-    // LISTA MAESTRA (Si se borra Firebase, se usa esta)
     const listaInicialPar = ["Oficial Castro", "Oficial Marín", "Oficial Serrano", "Agente Vives", "Agente Marquina", "Agente Pérez Gete", "Agente Beisti", "Agente Pérez", "Agente Roca", "Agente Plou", "Agente Lasmarías", "Agente Gimeno", "Agente Belanche"];
     const listaInicialImpar = ["Oficial Olmos", "Oficial Orea", "Agente Salavera", "Agente García Moraz", "Agente Picapeo", "Agente Lucea", "Agente Marco", "Agente García", "Agente Martínez Lacal", "Agente Gil", "Agente Aznar", "Agente Pemán"];
 
     db.ref('extras').on('value', (snap) => {
         const data = snap.val();
         if(!data) {
-            // SI ESTÁ VACÍO, REINSTALAR AUTOMÁTICAMENTE
-            db.ref('extras').set({
-                par: listaInicialPar,
-                impar: listaInicialImpar,
-                estados: {},
-                pass: "1234"
-            });
+            resetearBase();
         } else {
             renderTurnos('listaPar', data.par || [], data.estados || {});
             renderTurnos('listaImpar', data.impar || [], data.estados || {});
         }
     });
+
+    function resetearBase() {
+        db.ref('extras').set({
+            par: listaInicialPar,
+            impar: listaInicialImpar,
+            estados: {},
+            pass: "1234"
+        });
+    }
 
     function renderTurnos(id, lista, estados) {
         const el = document.getElementById(id); el.innerHTML = "";
@@ -133,32 +134,35 @@
         });
     }
 
+    function access() {
+        const p = prompt("Introduce clave:");
+        db.ref('extras/pass').once('value', (s) => {
+            if (isAdmin && p.toUpperCase() === "RESET") {
+                if(confirm("¿Seguro que quieres borrar todo y empezar de cero?")) resetearBase();
+            } else if (p === s.val() || p === "UTEBO_MAESTRA_2026") {
+                isAdmin = true;
+                document.body.classList.add('admin-mode');
+                document.getElementById('txtAdmin').style.display = 'block';
+                alert("MODO ADMIN: Escribe RESET en el candado para poner todo a cero.");
+            }
+        });
+    }
+
+    function addRow() {
+        const tr = document.getElementById('tablaHoras').getElementsByTagName('tbody')[0].insertRow(-1);
+        tr.innerHTML = `<td><input type="date"></td><td><input type="text"></td><td><input type="number" step="0.5" value="0" onchange="calc()"></td><td><input type="number" value="25" onchange="calc()"></td>`;
+    }
+
     function calc() {
         let h = 0, e = 0;
-        const rows = document.getElementById('tablaHoras').rows;
-        for(let i=1; i<rows.length; i++) {
-            let hrs = parseFloat(rows[i].cells[2].children[0].value) || 0;
-            let prc = parseFloat(rows[i].cells[3].children[0].value) || 0;
+        const rows = document.getElementById('tablaHoras').getElementsByTagName('tbody')[0].rows;
+        for(let r of rows) {
+            let hrs = parseFloat(r.cells[2].children[0].value) || 0;
+            let prc = parseFloat(r.cells[3].children[0].value) || 0;
             h += hrs; e += (hrs * prc);
         }
         document.getElementById('totalHoras').innerText = h.toFixed(1);
         document.getElementById('totalCobro').innerText = e.toFixed(2) + "€";
-    }
-
-    function addRow() {
-        const tr = document.getElementById('tablaHoras').insertRow(-1);
-        tr.innerHTML = `<td><input type="date"></td><td><input type="text"></td><td><input type="number" step="0.5" value="0" onchange="calc()"></td><td><input type="number" value="25" onchange="calc()"></td>`;
-    }
-
-    function access() {
-        const p = prompt("Clave:");
-        db.ref('extras/pass').once('value', (s) => {
-            if(p === s.val() || p === "UTEBO_MAESTRA_2026") {
-                isAdmin = true;
-                document.body.classList.add('admin-mode');
-                document.getElementById('txtAdmin').style.display = 'block';
-            }
-        });
     }
 </script>
 </body>
