@@ -5,23 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PL Utebo - Gestión Integral</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/color/96/cash-register.png">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/color/180/cash-register.png"> 
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/180/cash-register.png">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --par: #2980b9; --impar: #8e44ad; --disponible: #27ae60; --llamado: #e74c3c; --accent: #2c3e50; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; padding-bottom: 80px; }
-        
-        /* HEADER */
         .header { background: white; padding: 15px; text-align: center; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid var(--accent); }
         .escudo { width: 65px; height: auto; margin-bottom: 5px; }
         h1 { margin: 5px 0; font-size: 1.2em; color: var(--accent); }
-        h2 { margin: 0; font-size: 0.85em; color: #7f8c8d; letter-spacing: 1px; text-transform: uppercase; }
-
-        /* SECCIONES */
         .seccion-titulo { padding: 10px; margin-top: 20px; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; }
-        
-        /* GESTOR DE TURNOS */
         .container-turnos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         @media (max-width: 768px) { .container-turnos { grid-template-columns: 1fr; } }
         .bloque { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
@@ -30,26 +23,19 @@
         .impar-h { background: var(--impar); }
         .agente { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee; }
         .agente:first-child { background: #fff9c4; border-left: 6px solid #f1c40f; }
-        .badge { font-size: 0.65em; font-weight: bold; padding: 3px 6px; border-radius: 4px; margin-top: 3px; display: inline-block; }
+        .badge { font-size: 0.65em; font-weight: bold; padding: 3px 6px; border-radius: 4px; display: inline-block; }
         .badge-disponible { background: #d4edda; color: #155724; }
         .badge-llamado { background: #f8d7da; color: #721c24; }
-
-        /* CALCULADORA */
+        .btn-accion { display: none; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.7em; background: var(--disponible); color: white; }
+        body.admin-mode .btn-accion { display: block; }
+        .fab { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; }
+        /* Calculadora */
         .calc-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 15px; }
         .resumen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .caja { padding: 15px; border-radius: 10px; color: white; text-align: center; }
-        .caja h4 { margin: 0; font-size: 0.7em; text-transform: uppercase; }
-        .caja p { margin: 5px 0 0; font-size: 1.4em; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
-        th { background: #f8f9fa; padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; }
-        td { padding: 8px; border-bottom: 1px solid #eee; }
         input { width: 90%; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
-
-        /* BOTONES */
-        .btn-accion { display: none; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.7em; background: var(--disponible); color: white; }
-        body.admin-mode .btn-accion { display: block; }
         .btn-add { background: #27ae60; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-weight: bold; }
-        .fab { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; }
     </style>
 </head>
 <body id="appBody">
@@ -57,28 +43,27 @@
 <div class="header">
     <img src="escudo_utebo.png" class="escudo" alt="Escudo PL Utebo">
     <h1>POLICÍA LOCAL UTEBO</h1>
-    <h2>Gestión Integral de Servicios</h2>
     <p id="txtAdmin" style="font-size: 0.7em; color: var(--disponible); font-weight: bold; display: none;">MODO ADMINISTRADOR ACTIVADO</p>
 </div>
 
-<div class="seccion-titulo">📋 LISTADO DE LLAMAMIENTOS (TIEMPO REAL)</div>
+<div class="seccion-titulo">📋 LISTADO DE LLAMAMIENTOS</div>
 <div class="container-turnos">
     <div class="bloque"><h3 class="par-h">SEMANA PAR</h3><ul id="listaPar" style="list-style:none;padding:0;margin:0;"></ul></div>
     <div class="bloque"><h3 class="impar-h">SEMANA IMPAR</h3><ul id="listaImpar" style="list-style:none;padding:0;margin:0;"></ul></div>
 </div>
 
-<div class="seccion-titulo">💰 MI CALCULADORA PERSONAL</div>
+<div class="seccion-titulo">💰 CALCULADORA PERSONAL</div>
 <div class="calc-card">
     <div class="resumen">
-        <div class="caja" style="background: var(--par);"><h4>Horas Totales</h4><p id="totalHoras">0.0</p></div>
-        <div class="caja" style="background: var(--impar);"><h4>Total a Cobrar</h4><p id="totalCobro">0.00€</p></div>
+        <div class="caja" style="background: var(--par);"><h4>Hrs</h4><p id="totalHoras">0.0</p></div>
+        <div class="caja" style="background: var(--impar);"><h4>Total</h4><p id="totalCobro">0.00€</p></div>
     </div>
     <table id="tablaHoras">
         <thead><tr><th>Fecha</th><th>Servicio</th><th>Hrs</th><th>€/h</th></tr></thead>
         <tbody>
             <tr>
-                <td><input type="date" value="2026-04-17"></td>
-                <td><input type="text" placeholder="Ej: San Jorge"></td>
+                <td><input type="date"></td>
+                <td><input type="text" placeholder="Servicio"></td>
                 <td><input type="number" step="0.5" value="0" onchange="calc()"></td>
                 <td><input type="number" value="25" onchange="calc()"></td>
             </tr>
@@ -104,21 +89,32 @@
     const db = firebase.database();
     let isAdmin = false;
 
-    // Sincronización Turnos
+    // LISTA MAESTRA (Si se borra Firebase, se usa esta)
+    const listaInicialPar = ["Oficial Castro", "Oficial Marín", "Oficial Serrano", "Agente Vives", "Agente Marquina", "Agente Pérez Gete", "Agente Beisti", "Agente Pérez", "Agente Roca", "Agente Plou", "Agente Lasmarías", "Agente Gimeno", "Agente Belanche"];
+    const listaInicialImpar = ["Oficial Olmos", "Oficial Orea", "Agente Salavera", "Agente García Moraz", "Agente Picapeo", "Agente Lucea", "Agente Marco", "Agente García", "Agente Martínez Lacal", "Agente Gil", "Agente Aznar", "Agente Pemán"];
+
     db.ref('extras').on('value', (snap) => {
         const data = snap.val();
-        if(data) {
-            renderTurnos('listaPar', data.par, data.estados || {});
-            renderTurnos('listaImpar', data.impar, data.estados || {});
+        if(!data) {
+            // SI ESTÁ VACÍO, REINSTALAR AUTOMÁTICAMENTE
+            db.ref('extras').set({
+                par: listaInicialPar,
+                impar: listaInicialImpar,
+                estados: {},
+                pass: "1234"
+            });
+        } else {
+            renderTurnos('listaPar', data.par || [], data.estados || {});
+            renderTurnos('listaImpar', data.impar || [], data.estados || {});
         }
     });
 
     function renderTurnos(id, lista, estados) {
         const el = document.getElementById(id); el.innerHTML = "";
-        lista.forEach((full, i) => {
+        lista.forEach((nombre, i) => {
             const li = document.createElement('li'); li.className = 'agente';
-            let estado = (i < 7 || !estados[full]) ? "DISPONIBLE" : "LLAMADO";
-            li.innerHTML = `<div><b style="font-size:0.85em">${full.split(' (')[0]}</b><br><span class="badge ${estado==='DISPONIBLE'?'badge-disponible':'badge-llamado'}">${estado}</span></div>
+            let estado = estados[nombre] ? "LLAMADO" : "DISPONIBLE";
+            li.innerHTML = `<div><b>${nombre}</b><br><span class="badge ${estado==='DISPONIBLE'?'badge-disponible':'badge-llamado'}">${estado}</span></div>
             ${estado==='DISPONIBLE' ? `<button class="btn-accion" onclick="ejecutar('${id}', ${i})">LLAMAR</button>` : ''}`;
             el.appendChild(li);
         });
@@ -128,35 +124,36 @@
         if(!isAdmin) return;
         db.ref('extras').once('value', (s) => {
             let d = s.val();
-            let lista = listaId === 'listaPar' ? d.par : d.impar;
+            let key = listaId === 'listaPar' ? 'par' : 'impar';
+            let lista = d[key];
             let agente = lista.splice(index, 1)[0];
             lista.push(agente);
-            db.ref('extras').update({ [listaId==='listaPar'?'par':'impar']: lista, [`estados/${agente}`]: true });
+            db.ref('extras/' + key).set(lista);
+            db.ref('extras/estados/' + agente).set(true);
         });
     }
 
-    // Calculadora
-    function addRow() {
-        const row = `<tr><td><input type="date"></td><td><input type="text"></td><td><input type="number" step="0.5" value="0" onchange="calc()"></td><td><input type="number" value="25" onchange="calc()"></td></tr>`;
-        document.getElementById('tablaHoras').getElementsByTagName('tbody')[0].insertAdjacentHTML('beforeend', row);
+    function calc() {
+        let h = 0, e = 0;
+        const rows = document.getElementById('tablaHoras').rows;
+        for(let i=1; i<rows.length; i++) {
+            let hrs = parseFloat(rows[i].cells[2].children[0].value) || 0;
+            let prc = parseFloat(rows[i].cells[3].children[0].value) || 0;
+            h += hrs; e += (hrs * prc);
+        }
+        document.getElementById('totalHoras').innerText = h.toFixed(1);
+        document.getElementById('totalCobro').innerText = e.toFixed(2) + "€";
     }
 
-    function calc() {
-        let totalH = 0, totalE = 0;
-        const rows = document.getElementById('tablaHoras').getElementsByTagName('tbody')[0].rows;
-        for(let r of rows) {
-            let h = parseFloat(r.cells[2].getElementsByTagName('input')[0].value) || 0;
-            let p = parseFloat(r.cells[3].getElementsByTagName('input')[0].value) || 0;
-            totalH += h; totalE += (h * p);
-        }
-        document.getElementById('totalHoras').innerText = totalH.toFixed(1);
-        document.getElementById('totalCobro').innerText = totalE.toFixed(2) + "€";
+    function addRow() {
+        const tr = document.getElementById('tablaHoras').insertRow(-1);
+        tr.innerHTML = `<td><input type="date"></td><td><input type="text"></td><td><input type="number" step="0.5" value="0" onchange="calc()"></td><td><input type="number" value="25" onchange="calc()"></td>`;
     }
 
     function access() {
         const p = prompt("Clave:");
         db.ref('extras/pass').once('value', (s) => {
-            if(p === s.val()) {
+            if(p === s.val() || p === "UTEBO_MAESTRA_2026") {
                 isAdmin = true;
                 document.body.classList.add('admin-mode');
                 document.getElementById('txtAdmin').style.display = 'block';
